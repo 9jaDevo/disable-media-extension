@@ -11,7 +11,8 @@
         "storage",
         "tabs",
         "contextMenus",
-        "webNavigation"
+        "webNavigation",
+        "*://*/*"
     ],
     "background": {
         "service_worker": "background.js"
@@ -28,6 +29,18 @@
                 "default": "Ctrl+Shift+I"
             },
             "description": "Toggle image loading"
+        },
+        "toggle-gifs": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+G"
+            },
+            "description": "Toggle GIF loading"
+        },
+        "toggle-all-media": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+A"
+            },
+            "description": "Toggle all media (videos, images, GIFs, etc.)"
         }
     },
     "content_scripts": [
