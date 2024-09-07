@@ -1,0 +1,13 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 10px;
+}
+
+.dark-mode {
+    background-color: #333;
+    color: #fff;
+}
+
+h3 {
+    margin-top: 20px;
+}
