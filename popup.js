@@ -6,25 +6,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load saved preferences
     chrome.storage.sync.get(['disableVideos', 'disableImages', 'disableGIFs', 'whitelist', 'darkMode'], (data) => {
-        disableVideosCheckbox.checked = data.disableVideos || false;
-        disableImagesCheckbox.checked = data.disableImages || false;
-        disableGIFsCheckbox.checked = data.disableGIFs || false;
-        darkModeToggle.checked = data.darkMode || false;
+        if (disableVideosCheckbox) disableVideosCheckbox.checked = data.disableVideos || false;
+        if (disableImagesCheckbox) disableImagesCheckbox.checked = data.disableImages || false;
+        if (disableGIFsCheckbox) disableGIFsCheckbox.checked = data.disableGIFs || false;
+        if (darkModeToggle) darkModeToggle.checked = data.darkMode || false;
 
         if (darkModeToggle.checked) {
             document.body.classList.add('dark-mode');
         }
-
-        // Load and display whitelist
-        const whitelistElement = document.getElementById('whitelist');
-        (data.whitelist || []).forEach((domain) => {
-            const li = document.createElement('li');
-            li.textContent = domain;
-            whitelistElement.appendChild(li);
-        });
     });
 
-    // Listen for checkbox changes and save them
+    // Event listeners for checkboxes
     disableVideosCheckbox.addEventListener('change', () => {
         chrome.storage.sync.set({ disableVideos: disableVideosCheckbox.checked });
         applyChanges();
@@ -49,58 +41,57 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Whitelist functionality
-    document.getElementById('saveWhitelist').addEventListener('click', () => {
-        const domain = document.getElementById('whitelistInput').value;
-        chrome.storage.sync.get(['whitelist'], (data) => {
-            const whitelist = data.whitelist || [];
-            whitelist.push(domain);
-            chrome.storage.sync.set({ whitelist });
-            location.reload(); // Reload to apply changes
-        });
-    });
-
     function applyChanges() {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             chrome.scripting.executeScript({
                 target: { tabId: tabs[0].id },
-                function: applyPreferences
+                func: applyPreferences
             });
         });
     }
 });
 
+// This function is injected directly into the webpage's context
 function applyPreferences() {
     chrome.storage.sync.get(['disableVideos', 'disableImages', 'disableGIFs'], (data) => {
+        // Defining the functions directly within this script so they can run in the page's context
+        function toggleVideos(disable) {
+            const videos = document.querySelectorAll('video');
+            videos.forEach((video) => {
+                if (disable) {
+                    video.pause();
+                    video.style.display = 'none'; // Hide video
+                } else {
+                    video.play();
+                    video.style.display = ''; // Make video visible again
+                }
+            });
+        }
+
+        function toggleImages(disable) {
+            const images = document.querySelectorAll('img');
+            images.forEach((img) => {
+                if (disable) {
+                    img.style.display = 'none'; // Hide images
+                } else {
+                    img.style.display = ''; // Make images visible again
+                }
+            });
+        }
+
+        function toggleGIFs(disable) {
+            const gifs = document.querySelectorAll('img');
+            gifs.forEach((img) => {
+                if (img.src.match(/\.gif($|\?)/) && disable) {
+                    img.style.display = 'none'; // Hide GIFs
+                } else if (img.src.match(/\.gif($|\?)/)) {
+                    img.style.display = ''; // Make GIFs visible again
+                }
+            });
+        }
+
         toggleVideos(data.disableVideos);
         toggleImages(data.disableImages);
         toggleGIFs(data.disableGIFs);
-    });
-}
-
-function toggleVideos(disable) {
-    const videos = document.querySelectorAll('video');
-    videos.forEach((video) => {
-        if (disable) {
-            video.pause();
-        } else {
-            video.play();
-        }
-    });
-}
-
-function toggleImages(disable) {
-    if (disable) {
-        document.querySelectorAll('img').forEach((img) => img.remove());
-    } else {
-        location.reload();
-    }
-}
-
-function toggleGIFs(disable) {
-    document.querySelectorAll('img').forEach((img) => {
-        if (img.src.endsWith('.gif') && disable) {
-            img.remove();
-        }
     });
 }

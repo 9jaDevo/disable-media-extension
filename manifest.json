@@ -9,7 +9,9 @@
         "activeTab",
         "scripting",
         "storage",
-        "contextMenus"
+        "tabs",
+        "contextMenus",
+        "webNavigation"
     ],
     "background": {
         "service_worker": "background.js"
@@ -28,6 +30,16 @@
             "description": "Toggle image loading"
         }
     },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ],
     "icons": {
         "16": "icons/icon16.png",
         "48": "icons/icon48.png",
